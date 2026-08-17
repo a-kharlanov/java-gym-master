@@ -1,9 +1,5 @@
 package ru.yandex.practicum.gym;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 public class CounterOfSessions {
     private Coach coach;
     private int count;
