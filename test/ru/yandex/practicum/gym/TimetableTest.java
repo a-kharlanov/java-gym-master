@@ -20,12 +20,13 @@ public class TimetableTest {
 
         timetable.addNewTrainingSession(singleTrainingSession);
 
-        List<TrainingSession> mondaySessions = timetable.getTrainingSessionsForDay(DayOfWeek.MONDAY);
+        SortedMap<TimeOfDay, List<TrainingSession>> mondaySessions = timetable.getTrainingSessionsForDay(DayOfWeek.MONDAY);
 
         Assertions.assertEquals(1, mondaySessions.size());
-        Assertions.assertEquals(singleTrainingSession, mondaySessions.getFirst());
+        Assertions.assertEquals(1, mondaySessions.get(new TimeOfDay(13, 0)).size());
+        Assertions.assertEquals(singleTrainingSession, mondaySessions.get(new TimeOfDay(13, 0)).getFirst());
 
-        List<TrainingSession> tuesdaySessions = timetable.getTrainingSessionsForDay(DayOfWeek.TUESDAY);
+        SortedMap<TimeOfDay, List<TrainingSession>> tuesdaySessions = timetable.getTrainingSessionsForDay(DayOfWeek.TUESDAY);
 
         Assertions.assertTrue(tuesdaySessions.isEmpty());
         //Проверить, что за понедельник вернулось одно занятие
@@ -57,19 +58,27 @@ public class TimetableTest {
         timetable.addNewTrainingSession(thursdayChildTrainingSession);
         timetable.addNewTrainingSession(saturdayChildTrainingSession);
 
-        List<TrainingSession> mondaySessions = timetable.getTrainingSessionsForDay(DayOfWeek.MONDAY);
+        SortedMap<TimeOfDay, List<TrainingSession>> mondaySessions = timetable.getTrainingSessionsForDay(
+                DayOfWeek.MONDAY);
 
         Assertions.assertEquals(1, mondaySessions.size());
 
-        List<TrainingSession> tuesdaySessions = timetable.getTrainingSessionsForDay(DayOfWeek.TUESDAY);
+        Assertions.assertEquals(
+                mondayChildTrainingSession,
+                mondaySessions.get(new TimeOfDay(13, 0)).getFirst()
+        );
+
+        SortedMap<TimeOfDay, List<TrainingSession>> tuesdaySessions = timetable.getTrainingSessionsForDay(DayOfWeek.TUESDAY);
 
         Assertions.assertTrue(tuesdaySessions.isEmpty());
 
-        List<TrainingSession> thursdaySessions = timetable.getTrainingSessionsForDay(DayOfWeek.THURSDAY);
+        SortedMap<TimeOfDay, List<TrainingSession>> thursdaySessions = timetable.getTrainingSessionsForDay(DayOfWeek.THURSDAY);
 
         Assertions.assertEquals(2, thursdaySessions.size());
-        Assertions.assertEquals(thursdayChildTrainingSession, thursdaySessions.getFirst());
-        Assertions.assertEquals(thursdayAdultTrainingSession, thursdaySessions.get(1));
+        Assertions.assertEquals(thursdayChildTrainingSession, thursdaySessions.get(
+                new TimeOfDay(13, 0)).getFirst());
+        Assertions.assertEquals(thursdayAdultTrainingSession, thursdaySessions.get(
+                new TimeOfDay(20, 0)).getFirst());
         // Проверить, что за понедельник вернулось одно занятие
         // Проверить, что за четверг вернулось два занятия в правильном порядке: сначала в 13:00, потом в 20:00
         // Проверить, что за вторник не вернулось занятий
@@ -130,7 +139,8 @@ public class TimetableTest {
     void testGetTrainingSessionsForEmptyTimetable() {
         Timetable timetable = new Timetable();
 
-        List<TrainingSession> sessions = timetable.getTrainingSessionsForDay(DayOfWeek.MONDAY);
+        SortedMap<TimeOfDay, List<TrainingSession>> sessions = timetable.getTrainingSessionsForDay(
+                DayOfWeek.MONDAY);
 
         Assertions.assertTrue(sessions.isEmpty());
     }
@@ -264,6 +274,44 @@ public class TimetableTest {
 
         Assertions.assertEquals(coach1, result.get(2).getCoach());
         Assertions.assertEquals(1, result.get(2).getCount());
+    }
+
+    @Test
+    void testGetTrainingSessionsForDayAndTimeReturnsUnmodifiableList() {
+        Timetable timetable = new Timetable();
+
+        Group group = new Group("Акробатика", Age.ADULT, 60);
+
+        Coach coach = new Coach("Васильев", "Николай", "Сергеевич");
+
+        TrainingSession session =
+                new TrainingSession(group, coach,
+                        DayOfWeek.MONDAY, new TimeOfDay(13, 0));
+
+        timetable.addNewTrainingSession(session);
+
+        List<TrainingSession> sessions = timetable.getTrainingSessionsForDayAndTime(
+                        DayOfWeek.MONDAY, new TimeOfDay(13, 0));
+
+        Assertions.assertThrows(UnsupportedOperationException.class, sessions::clear);
+    }
+
+    @Test
+    void testGetTrainingSessionsForDayReturnsUnmodifiableMap() {
+        Timetable timetable = new Timetable();
+
+        Group group = new Group("Акробатика", Age.ADULT, 60);
+        Coach coach = new Coach("Васильев", "Николай", "Сергеевич");
+
+        TrainingSession session = new TrainingSession(group, coach,
+                DayOfWeek.MONDAY, new TimeOfDay(13, 0));
+
+        timetable.addNewTrainingSession(session);
+
+        SortedMap<TimeOfDay, List<TrainingSession>> sessions = timetable.getTrainingSessionsForDay(
+                DayOfWeek.MONDAY);
+
+        Assertions.assertThrows(UnsupportedOperationException.class, sessions::clear);
     }
 
 }

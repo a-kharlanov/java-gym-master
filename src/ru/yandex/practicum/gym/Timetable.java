@@ -24,33 +24,32 @@ public class Timetable {
         dailyMap.get(time).add(trainingSession);
     }
 
-    public List<TrainingSession> getTrainingSessionsForDay(DayOfWeek dayOfWeek) {
+    public SortedMap<TimeOfDay, List<TrainingSession>> getTrainingSessionsForDay(DayOfWeek dayOfWeek) {
         //как реализовать, тоже непонятно, но сложность должна быть О(1)
         if (!timetable.containsKey(dayOfWeek)) {
-            return new ArrayList<>();
+            return Collections.emptySortedMap();
         }
 
         TreeMap<TimeOfDay, List<TrainingSession>> sessionsForDay = timetable.get(dayOfWeek);
-        List<TrainingSession> orderedSessions = new ArrayList<>();
 
-        for (TimeOfDay time : sessionsForDay.navigableKeySet()) {
-            List<TrainingSession> sessionsAtTime = sessionsForDay.get(time);
-            if (sessionsAtTime != null) {
-                orderedSessions.addAll(sessionsAtTime);
-            }
-        }
-        return orderedSessions;
+        return Collections.unmodifiableSortedMap(sessionsForDay);
     }
 
     public List<TrainingSession> getTrainingSessionsForDayAndTime(DayOfWeek dayOfWeek, TimeOfDay timeOfDay) {
         //как реализовать, тоже непонятно, но сложность должна быть О(1)
         if (!timetable.containsKey(dayOfWeek)) {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
         TreeMap<TimeOfDay, List<TrainingSession>> sessionForDay = timetable.get(dayOfWeek);
 
-        return sessionForDay.getOrDefault(timeOfDay, new ArrayList<>());
+        List<TrainingSession> sessions = sessionForDay.get(timeOfDay);
+
+        if (sessions == null) {
+            return Collections.emptyList();
+        }
+
+        return Collections.unmodifiableList(sessions);
     }
 
     public List<CounterOfSessions> getCountByCoaches() {
